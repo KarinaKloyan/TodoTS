@@ -1,44 +1,52 @@
-import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import TodoList from "./components/TodoList/TodoList";
-import type { RootState } from "./store/store";
-import { getTodosAC, getTodosTC } from "./store/TodosReducer/TodosReducer";
-getTodosAC
+import type { RootState, AppDispatch } from "./store/store";
+import { addTodo, deleteTodo, toggleTodo } from "./store/TodosSlice/TodosSlice";
+import { useState } from "react";
 
 function App() {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
 
-  const todos = useSelector(
-    (state: RootState) => state.todosPage.todos
-  );
+  const [text, setText] = useState("");
 
-  useEffect(() => {
-    dispatch(getTodosTC() as any);
-  }, [dispatch]);
+  const todos = useSelector((state: RootState) => state.todos.todos);
 
-  const deleteTodo = (id: number) => {
-    console.log("delete", id);
+  const handleAdd = () => {
+    if (!text.trim()) return;
+    dispatch(
+      addTodo({
+        id: Date.now(),
+        title: text,
+        isDone: false,
+      }),
+    );
+    setText("");
   };
 
-  const toggleTodo = (id: number) => {
-    console.log("toggle", id);
-  };
-
-  const editTodo = (id: number, title: string) => {
-    console.log("edit", id, title);
+  const handleDelete = (id: number) => {
+    dispatch(deleteTodo(id));
   };
 
   return (
-    <div>
-      <h1>Todo App</h1>
+    <>
+      <input value={text} onChange={(e) => setText(e.target.value)} />
+      <button onClick={handleAdd}>Add Todo</button>
 
-      <TodoList
-        todos={todos}
-        deleteTodo={deleteTodo}
-        toggleTodo={toggleTodo}
-        editTodo={editTodo}
-      />
-    </div>
+      {todos.map((todo) => (
+        <div key={todo.id}>
+          <input
+            type="checkbox"
+            checked={todo.isDone}
+            onChange={() => dispatch(toggleTodo(todo.id))}
+          />
+
+          <span>
+            {todo.isDone ? "✅" : "⬜"} {todo.title}
+          </span>
+
+          <button onClick={() => handleDelete(todo.id)}>Delete</button>
+        </div>
+      ))}
+    </>
   );
 }
 
